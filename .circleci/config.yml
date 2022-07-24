@@ -51,6 +51,21 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
+  scan-frontend:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Audit front-end
+          command: |
+            cd frontend
+            npm install
+            npm audit --audit-level=critical
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
   test-backend:
     executor: node-executor
     steps:
@@ -67,7 +82,22 @@ jobs:
           paths:
             - backend/node_modules
           key: backend-build
-
+  scan-backend:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Audit Backend
+          command: |
+            cd backend
+            npm install
+            npm audit --audit-level=critical
+      - save_cache:
+          paths:
+            - backend/node_modules
+          key: backend-build
 workflows:
   default:
     jobs:
@@ -79,3 +109,9 @@ workflows:
       - test-backend:
           requires:
             - build-backend
+      - scan-backend:
+          requires:
+            - build-backend
+      - scan-frontend:
+          requires:
+            - build-frontend
