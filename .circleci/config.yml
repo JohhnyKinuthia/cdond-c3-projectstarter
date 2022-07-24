@@ -4,7 +4,7 @@ executors:
     docker:
       - image: circleci/node:13.8.0
 jobs:
-  build_frontend:
+  build-frontend:
     executor: node-executor
     steps:
       - checkout
@@ -19,7 +19,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-  build_backend:
+  build-backend:
     executor: node-executor
     steps:
       - checkout
@@ -33,10 +33,49 @@ jobs:
             npm run build
       - save_cache:
           paths:
-            - frontend/node_modules
+            - backend/node_modules
           key: backend-build
+
+  test-frontend:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Test front-end
+          command: |
+            cd frontend
+            npm install
+            npm run test
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
+  test-backend:
+    executor: node-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      - run:
+          name: Test backend
+          command: |
+            cd backend
+            npm install
+            npm run test
+      - save_cache:
+          paths:
+            - backend/node_modules
+          key: backend-build
+
 workflows:
   default:
     jobs:
-      - build_frontend
-      - build_backend
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires:
+            - build-frontend
+      - test-backend:
+          requires:
+            - build-backend
