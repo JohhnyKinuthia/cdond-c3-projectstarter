@@ -4,7 +4,7 @@ executors:
     docker:
       - image: circleci/node:13.8.0
 jobs:
-  build-frontend:
+  build_frontend:
     executor: node-executor
     steps:
       - checkout
