@@ -1,4 +1,7 @@
 version: 2.1
+
+orbs:
+  slack: circleci/slack@4.10.1
 executors:
   node-executor:
     docker:
@@ -100,6 +103,10 @@ jobs:
           paths:
             - backend/node_modules
           key: backend-build
+      - slack/notify:
+          #channel: ABCXYZ
+          event: fail
+          template: basic_fail_1
 workflows:
   default:
     jobs:
@@ -117,3 +124,4 @@ workflows:
       - scan-frontend:
           requires:
             - build-frontend
+          context: Slack
