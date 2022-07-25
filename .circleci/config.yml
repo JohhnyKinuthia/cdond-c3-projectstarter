@@ -124,4 +124,5 @@ workflows:
       - scan-frontend:
           requires:
             - build-frontend
-          context: Slack
+          context:
+            - Slack
