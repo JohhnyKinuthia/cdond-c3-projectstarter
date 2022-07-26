@@ -35,7 +35,7 @@ commands:
     parameters:
       workflow-id:
         type: string
-        default: "{CIRCLE_WORKFLOW_ID:0:7}"
+        default: "{ CIRCLE_WORKFLOW_ID:0:7 }"
     steps:
       - run:
           name: Destroy environments
@@ -50,7 +50,7 @@ commands:
     parameters:
       workflow-id:
         type: string
-        default: "{CIRCLE_WORKFLOW_ID:0:7}"
+        default: "{ CIRCLE_WORKFLOW_ID:0:7 }"
     steps:
       - run:
           name: Revert migrations
@@ -235,6 +235,7 @@ jobs:
     executor: node
     working_directory: ~/project
     steps:
+      - run: sudo apt-get update && sudo apt-get install -y git sudo tar curl && sudo apt -u upgrade
       - checkout
       - restore_cache:
           keys: [backend-build]
