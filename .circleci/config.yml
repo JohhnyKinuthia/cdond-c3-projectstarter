@@ -264,7 +264,8 @@ jobs:
           migration_id: "migration_${CIRCLE_WORKFLOW_ID:0:7}"
 
   deploy-frontend:
-    executor: aws
+    docker:
+      - image: cimg/python:3.8
     working_directory: ~/project
     steps:
       - checkout
@@ -275,8 +276,20 @@ jobs:
           name: Install npm nodejs
           command: |
             sudo apt-get update
-            sudo apt install nodejs
-            sudo apt install npm
+            sudo apt install -y nodejs
+            sudo apt install -y npm
+      - run:
+          name: Install aws cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            touch ~/.aws/credentials
+            touch ~/.aws/config
+            echo "[default]\nregion = us-east-1\noutput = json" >> ~/.aws/config
+            echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+            cat > ~/.aws/config
+            aws iam list-users
       - run:
           name: Install Ansible
           command: |
@@ -313,7 +326,10 @@ jobs:
     working_directory: ~/project
     steps:
       - checkout
-      - install-tar-gzip
+      - run:
+          name: Install
+          command: |
+            sudo apt-get install -y tar gzip
       - add_ssh_keys:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
@@ -328,12 +344,6 @@ jobs:
             sudo apt-get install ansible
       - cat-file:
           file_path: .circleci/ansible/inventory.txt
-      - run:
-          name: Configure server
-          command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            cat .circleci/ansible/inventory.txt
-            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
       - run:
           name: Deploy backend
           command: |
