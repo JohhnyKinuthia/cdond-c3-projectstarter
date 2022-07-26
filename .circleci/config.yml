@@ -36,6 +36,7 @@ commands:
       workflow-id:
         type: string
         default: "{ CIRCLE_WORKFLOW_ID:0:7 }"
+    executor: aws
     steps:
       - run:
           name: Destroy environments
@@ -268,6 +269,7 @@ jobs:
     working_directory: ~/project
     steps:
       - checkout
+      - install-tar-gzip
       - attach_workspace:
           at: ~/project
       - run:
@@ -312,6 +314,7 @@ jobs:
     working_directory: ~/project
     steps:
       - checkout
+      - install-tar-gzip
       - add_ssh_keys:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
