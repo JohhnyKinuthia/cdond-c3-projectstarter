@@ -1,0 +1,20 @@
+---
+- name: Untar the zipped folder to the server
+  unarchive:
+    src: artifact.tar.gz
+    dest: /tmp
+
+- name: Copy the extracted artifact to the home folder
+  become: true
+  copy:
+    remote_src: yes
+    src: /tmp/console_libraries
+    dest: ~/
+    owner: ubuntu
+    group: ubuntu
+
+- name: Start the backend code
+  shell: |
+    npm install
+    pm2 stop default
+    pm2 start npm -- start
