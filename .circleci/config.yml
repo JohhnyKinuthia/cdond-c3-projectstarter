@@ -269,15 +269,15 @@ jobs:
     working_directory: ~/project
     steps:
       - checkout
-      - install-tar-gzip
-      - attach_workspace:
-          at: ~/project
       - run:
           name: Install npm nodejs
           command: |
             sudo apt-get update
             sudo apt install -y nodejs
             sudo apt install -y npm
+            sudo apt install -y tar gzip
+      - attach_workspace:
+          at: ~/project
       - run:
           name: Install aws cli
           command: |
@@ -327,9 +327,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install
+          name: Install tar, gzip, nodejs and npm
           command: |
-            sudo apt-get install -y tar gzip
+            sudo apt-get install -y tar gzip nodejs npm
       - add_ssh_keys:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
