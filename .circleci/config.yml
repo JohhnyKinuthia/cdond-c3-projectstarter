@@ -270,7 +270,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install npm nodejs
+          name: Install tar, gzip, nodejs and npm
           command: |
             sudo apt-get update
             sudo apt install -y nodejs
@@ -286,11 +286,12 @@ jobs:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
+            mkdir ~/.aws
             touch ~/.aws/credentials
             touch ~/.aws/config
             echo "[default]\nregion = us-east-1\noutput = json" >> ~/.aws/config
             echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
-            cat > ~/.aws/config
+            cat > ~/.aws/credentials
             aws iam list-users
       - run:
           name: Install Ansible
@@ -334,7 +335,10 @@ jobs:
       - run:
           name: Install tar, gzip, nodejs and npm
           command: |
-            sudo apt-get install -y tar gzip nodejs npm
+            sudo apt-get update
+            sudo apt install -y nodejs
+            sudo apt install -y npm
+            sudo apt install -y tar gzip
       - add_ssh_keys:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
