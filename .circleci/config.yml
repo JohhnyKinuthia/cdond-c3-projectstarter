@@ -187,14 +187,14 @@ jobs:
   configure-infrastructure:
     docker:
       - image: cimg/python:3.8
-    working_directory: ~/
+    working_directory: ~/project
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
       - attach_workspace:
-          at: ~/
+          at: ~/project
       - run:
           name: Install ansible
           command: |
