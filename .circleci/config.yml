@@ -194,7 +194,7 @@ jobs:
           fingerprints:
             - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
       - attach_workspace:
-          at: ~/
+          at: ~/.circleci/ansible/inventory.txt
       - run:
           name: Install ansible
           command: |
@@ -202,6 +202,8 @@ jobs:
             sudo apt-get install software-properties-common
             sudo apt-add-repository --yes --update ppa:ansible/ansible
             sudo apt-get install ansible
+      - cat-file:
+          file_path: .circleci/ansible/inventory.txt
       - run:
           name: Configure server
           command: |
