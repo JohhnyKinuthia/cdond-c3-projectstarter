@@ -10,6 +10,7 @@ executors:
   aws:
     docker:
       - image: amazon/aws-cli
+    working_directory: ~/
 commands:
   install-tar-gzip:
     steps:
@@ -17,6 +18,18 @@ commands:
           name: Install Tar and Gzip
           command: |
             yum install -y tar gzip
+  cat-file:
+    description: Cat the file contents to console. Useful for debugging
+    parameters:
+      file_path:
+        type: string
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Cat file content
+          command: |
+            cat << parameters.file_path >>
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -30,8 +43,8 @@ commands:
           command: |
             aws cloudformation delete-stack \
               --stack-name udapeople-frontend-<< parameters.workflow-id >>
-            aws ec2 terminate-instances \
-              --instance-ids udapeople-backend-<< parameters.workflow-id >>
+            aws cloudformation delete-stack \
+             --stack-name udapeople-backend-<< parameters.workflow-id >>
 jobs:
   build-frontend:
     executor: node
@@ -144,14 +157,16 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople \
-              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udapeople \
-              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -162,6 +177,8 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+      - cat-file:
+          file_path: project/.circleci/ansible/inventory.txt
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
 
