@@ -14,6 +14,7 @@
         sleep 6
 
     - name: "install python for Ansible."
+      become: true
       apt:
         name: python3
         state: latest
