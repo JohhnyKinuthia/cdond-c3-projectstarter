@@ -39,7 +39,7 @@ commands:
     steps:
       - run:
           name: Destroy environments
-          # when: on_fail
+          when: on_fail
           command: |
             aws cloudformation delete-stack \
               --stack-name udapeople-frontend-<< parameters.workflow-id >>
@@ -170,37 +170,40 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            touch project/.circleci/ansible/inventory.txt
+            touch .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text > project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
-            - project/.circleci/ansible/inventory.txt
+            - .circleci/ansible/inventory.txt
       - cat-file:
-          file_path: project/.circleci/ansible/inventory.txt
+          file_path: .circleci/ansible/inventory.txt
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  # configure-infrastructure:
-  #   docker:
-  #     # Docker image here that supports Ansible
-  #   steps:
-  #     # Checkout code from git
-  #     # Add ssh keys with fingerprint
-  #     # attach workspace
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     # Here's where you will add some code to rollback on failure
+  configure-infrastructure:
+    docker:
+      - image: cimg/python:3.8
+    working_directory: /tmp/ansible/
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
+      # attach workspace
+      - run:
+          name: Install dependencies
+          command: |
+            # Your code here
+            exit 1
+      - run:
+          name: Configure server
+          command: |
+            # Your code here
+            exit 1
+      # Here's where you will add some code to rollback on failure
 
   # run-migrations:
   #   executor: node
