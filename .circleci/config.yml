@@ -171,9 +171,12 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             touch .circleci/ansible/inventory.txt
+            echo "[web]" >> .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text > project/.circleci/ansible/inventory.txt
+              --output text > circleci/ansible/inventory.txt
+            echo "[web:vars]" >> .circleci/ansible/inventory.txt
+            echo "ansible_user=ubuntu" >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -183,27 +186,40 @@ jobs:
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  configure-infrastructure:
-    docker:
-      - image: cimg/python:3.8
-    working_directory: /tmp/ansible/
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
-      # attach workspace
-      - run:
-          name: Install dependencies
-          command: |
-            # Your code here
-            exit 1
-      - run:
-          name: Configure server
-          command: |
-            # Your code here
-            exit 1
-      # Here's where you will add some code to rollback on failure
+  # configure-infrastructure:
+  #   docker:
+  #     - image: cimg/python:3.8
+  #   working_directory: /tmp/ansible/
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints:
+  #           - "2a:cd:12:a2:74:23:81:3c:98:cf:da:84:fd:9b:41:06"
+  #     - attach_workspace:
+  #         at: ~/
+  #     - run:
+  #         name: Install ansible
+  #         command: |
+  #           sudo apt-get update
+  #           sudo apt-get install software-properties-common
+  #           sudo apt-add-repository --yes --update ppa:ansible/ansible
+  #           sudo apt-get install ansible
+  #     - run:
+  #         name: Configure server
+  #         command: |
+  #           export ANSIBLE_HOST_KEY_CHECKING=False
+  #           cat inventory.txt
+  #           ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/configure-server.yml
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+
+  #     - run:
+  #         name: Configure server
+  #         command: |
+  #           # Your code here
+  #           exit 1
+  # Here's where you will add some code to rollback on failure
 
   # run-migrations:
   #   executor: node
