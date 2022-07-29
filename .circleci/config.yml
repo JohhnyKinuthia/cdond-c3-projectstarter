@@ -375,11 +375,10 @@ jobs:
             npm i
             npm run build
             cd ..
-            export ANSIBLE_FILE_PATH="~/project/.circleci/ansible/roles/deploy/files/"
             tar -C backend -czf artifact.tar.gz .
             cp artifact.tar.gz .circleci/ansible/roles/deploy/files/
             echo "Content of ${ANSIBLE_FILE_PATH} directory is -------------"
-            ls -lah $ANSIBLE_FILE_PATH
+            ls -lah .circleci/ansible/roles/deploy/files/
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
