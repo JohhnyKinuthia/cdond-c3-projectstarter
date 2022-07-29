@@ -377,13 +377,6 @@ jobs:
             cd ..
             export ANSIBLE_FILE_PATH="~/project/.circleci/ansible/roles/deploy/files/"
             tar -C backend -czf artifact.tar.gz .
-            echo "Content of project folder directory is -------------"
-            ls -lah .
-            ls -l artifact.tar.gz
-            ls -l .circleci/
-            ls -l .circleci/ansible/
-            ls -l .circleci/ansible/roles/deploy/
-            ls -l .circleci/ansible/roles/deploy/files/
             cp artifact.tar.gz .circleci/ansible/roles/deploy/files/
             echo "Content of ${ANSIBLE_FILE_PATH} directory is -------------"
             ls -lah $ANSIBLE_FILE_PATH
