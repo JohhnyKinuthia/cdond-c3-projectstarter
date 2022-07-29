@@ -345,6 +345,19 @@ jobs:
       - attach_workspace:
           at: ~/project
       - run:
+          name: Install aws cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            mkdir ~/.aws
+            touch ~/.aws/credentials
+            touch ~/.aws/config
+            echo "[default]\nregion = us-east-1\noutput = json" >> ~/.aws/config
+            echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+            cat > ~/.aws/credentials
+            aws iam list-users
+      - run:
           name: Install ansible
           command: |
             sudo apt-get update
@@ -362,13 +375,13 @@ jobs:
             npm i
             npm run build
             cd ..
-            export ANSIBLE_FILE_PATH=".circleci/ansible/roles/deploy/files"
+            export ANSIBLE_FILE_PATH=".circleci/ansible/roles/deploy/files/"
             tar -C backend -czf artifact.tar.gz .
             echo "Content of project folder directory is -------------"
-            ls -l .
+            ls -lah .
             cp artifact.tar.gz $ANSIBLE_FILE_PATH
             echo "Content of ${ANSIBLE_FILE_PATH} directory is -------------"
-            ls -l $ANSIBLE_FILE_PATH
+            ls -lah $ANSIBLE_FILE_PATH
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
