@@ -430,7 +430,8 @@ jobs:
             echo "Backend IP is: $(cat backend.txt)"
             export BACKEND_IP=$(cat backend.txt) 
             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
+            echo API_URL="${API_URL}"
+            echo $API_URL
             if curl "${API_URL}/api/status" | grep "ok"
             then
                 echo "Backend Smoke test succeeded"
