@@ -41,6 +41,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
+            aws s3 rm s3://udapeople-<< parameters.workflow-id >> --recursive
             aws cloudformation delete-stack \
               --stack-name udapeople-frontend-<< parameters.workflow-id >>
             aws cloudformation delete-stack \
@@ -325,7 +326,8 @@ jobs:
           key: frontend-build
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
-
+      - revert-migrations:
+          migration_id: "migration_${CIRCLE_WORKFLOW_ID:0:7}"
   deploy-backend:
     docker:
       - image: cimg/python:3.8
@@ -389,7 +391,98 @@ jobs:
           key: backend-build
       - destroy-environment:
           workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
-
+      - revert-migrations:
+          migration_id: "migration_${CIRCLE_WORKFLOW_ID:0:7}"
+  smoke-test:
+    docker:
+      - image: cimg/python:3.8
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Install tar, gzip, nodejs and npm
+          command: |
+            sudo apt-get update
+            sudo apt upgrade
+            sudo apt install -y curl npm nodejs tar gzip
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Install aws cli
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            mkdir ~/.aws
+            touch ~/.aws/credentials
+            touch ~/.aws/config
+            echo "[default]\nregion = us-east-1\noutput = json" >> ~/.aws/config
+            echo "[default]\naws_access_key_id = ${AWS_ACCESS_KEY_ID}\naws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+            cat > ~/.aws/credentials
+            aws iam list-users
+      - run:
+          name: Get backend url
+          command: |
+            touch backend.txt
+            aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text >> backend.txt
+            echo "Backend IP is: $(cat backend.txt)"
+            export BACKEND_IP=$(cat backend.txt) 
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+      - run:
+          name: Get backend url
+          command: |
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                echo "Backend Smoke test succeeded"
+                return 0
+            else
+                echo "Backend Smoke test failed"
+                return 1
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            export FRONTEND_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo ${FRONTEND_URL} 
+            if curl -s ${FRONTEND_URL} | grep "Welcome"
+            then
+              echo "Frontend smoke test passed"
+              return 1
+            else
+              echo "Frontend smoke test failed"
+              return 1
+            fi
+      - destroy-environment:
+          workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          migration_id: "migration_${CIRCLE_WORKFLOW_ID:0:7}"
+  cloudfront-update:
+    executor: aws
+    working_directory: ~/project
+    steps:
+      - checkout
+      - install-tar-gzip
+      - run:
+          name: Install dependencies
+          command: |
+            yum install -y curl npm nodejs
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/cloudfront.yml \
+              --tags project=udapeople \
+              --stack-name "udapeople-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - destroy-environment:
+          workflow-id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          migration_id: "migration_${CIRCLE_WORKFLOW_ID:0:7}"
 workflows:
   default:
     jobs:
@@ -426,3 +519,10 @@ workflows:
       - deploy-backend:
           requires:
             - run-migrations
+      - smoke-test:
+          requires:
+            - deploy-backend
+            - deploy-frontend
+      - cloudfront-update:
+          requires:
+            - smoke-test
