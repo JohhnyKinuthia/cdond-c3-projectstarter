@@ -193,6 +193,7 @@ jobs:
           command: |
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters 'Name=tag-value,Values=udapeople' 'Name=tag-key,Values=project' \
               --output text >> .circleci/ansible/inventory.txt
             echo "[web:vars]" >> .circleci/ansible/inventory.txt
             echo "ansible_user=ubuntu" >> .circleci/ansible/inventory.txt
@@ -308,6 +309,7 @@ jobs:
             touch backend.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters 'Name=tag-value,Values=udapeople' 'Name=tag-key,Values=project' \
               --output text >> backend.txt
             echo "Backend IP is: $(cat backend.txt)"
             export BACKEND_IP=$(cat backend.txt) 
@@ -427,6 +429,7 @@ jobs:
             touch backend.txt
             aws ec2 describe-instances \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --filters 'Name=tag-value,Values=udapeople' 'Name=tag-key,Values=project' \
               --output text >> backend.txt
             echo "Backend IP is: $(cat backend.txt)"
             export BACKEND_IP=$(cat backend.txt) 
