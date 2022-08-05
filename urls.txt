@@ -1,0 +1,2 @@
+https://github.com/JohhnyKinuthia/cdond-c3-projectstarter
+http://udapeople-6067598.s3-website-us-east-1.amazonaws.com/#/employees
